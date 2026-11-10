@@ -653,6 +653,7 @@
     return `${seitenkopf(esc(kurz(fokus)), `Platz ${pl} · ${z.pkt} Punkte · ${esc(ligaName)}`)}${demoHinweis()}${alt}${intro}
       <div class="hero-raster">${tafel(fokus)}${kach}</div>
       ${aenderungKarte()}
+      ${vibePlayer()}
       ${teamKarussell()}
       ${newsroom()}
       <div class="zwei-sp">${modul('Form', formHtml, { eyebrow: 'Letzte Spiele', aktion: `<button class="textaktion" data-kader="${fokus}">Kader</button>` })}
@@ -773,6 +774,48 @@
       <pre class="wa-vorschau">${esc(t)}</pre>
       <div style="display:grid;gap:8px;margin-top:12px"><a class="btn prim wa-knopf" href="${whatsappLink()}" target="_blank" rel="noopener">${ico('teilen', 1)} In WhatsApp öffnen</a>
       <button class="btn" data-aktion="waKopieren">Text kopieren</button></div>`);
+  }
+
+  // ================= Team-Song „Geht zur Seite“ =================
+  // Ein einziges Audio-Objekt außerhalb des DOM, damit die Musik beim Wechsel der Bereiche weiterläuft.
+  const SONG = { src: 'assets/geht-zur-seite.mp3', cover: 'assets/geht-zur-seite-cover.jpg', titel: 'Geht zur Seite', datei: 'broilers-geht-zur-seite.mp3', dauer: 190 };
+  let songAudio = null;
+  const song = () => songAudio || (songAudio = Object.assign(new Audio(), { preload: 'none', src: SONG.src }));
+  const mmss = t => { t = Math.max(0, Math.floor(t || 0)); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; };
+  function vibePlayer() {
+    if (fokus !== UNSER) return '';
+    const a = songAudio, laeuft = a && !a.paused, pos = a ? a.currentTime : 0, dauer = (a && a.duration) || SONG.dauer;
+    return `<section class="vibe nicht-druck" aria-label="Team-Song">
+      <img class="vibe-cover" src="${SONG.cover}" alt="" width="96" height="96" loading="lazy">
+      <div class="vibe-txt">
+        <span class="micro">Das sind wir</span>
+        <h2 class="titel">Hier ist unser Vibe!</h2>
+        <span class="cap">„${SONG.titel}“ · der Song über ${esc(kurz(UNSER))}</span>
+        <div class="vibe-zeit"><span id="vibeJetzt">${mmss(pos)}</span><input type="range" id="vibeLeiste" min="0" max="${Math.round(dauer)}" step="1" value="${Math.round(pos)}" aria-label="Position im Song"><span id="vibeDauer">${mmss(dauer)}</span></div>
+      </div>
+      <button class="vibe-knopf" data-aktion="vibe" aria-label="${laeuft ? 'Pause' : 'Abspielen'}">${ico(laeuft ? 'pause' : 'play')}</button>
+    </section>`;
+  }
+  function vibeAnzeige() {
+    const a = songAudio; if (!a) return;
+    const k = $('.vibe-knopf'), l = $('#vibeLeiste'), j = $('#vibeJetzt'), d = $('#vibeDauer');
+    if (k) { k.innerHTML = ico(a.paused ? 'play' : 'pause'); k.setAttribute('aria-label', a.paused ? 'Abspielen' : 'Pause'); k.classList.toggle('an', !a.paused); }
+    if (l && !l.matches(':active')) { if (a.duration) l.max = Math.round(a.duration); l.value = Math.round(a.currentTime); }
+    if (j) j.textContent = mmss(a.currentTime);
+    if (d && a.duration) d.textContent = mmss(a.duration);
+  }
+  function vibeUmschalten() {
+    const a = song();
+    if (!a._an) { a._an = true; ['play', 'pause', 'timeupdate', 'loadedmetadata', 'ended'].forEach(ev => a.addEventListener(ev, vibeAnzeige)); }
+    if (a.paused) a.play().catch(() => {}); else a.pause();
+  }
+  async function songTeilen() {
+    try {
+      const blob = await (await fetch(SONG.src)).blob();
+      const datei = new File([blob], SONG.datei, { type: 'audio/mpeg' });
+      if (navigator.canShare && navigator.canShare({ files: [datei] })) return navigator.share({ files: [datei], text: `${SONG.titel} – der Song über ${kurz(UNSER)}` }).catch(() => {});
+    } catch (e) {}
+    const a = document.createElement('a'); a.href = SONG.src; a.download = SONG.datei; document.body.appendChild(a); a.click(); a.remove();
   }
 
   // ================= Karte „Was sich geändert hat“ =================
@@ -1006,7 +1049,8 @@
     const weitere = kommend.slice(1);
     const ankuend = weitere.length ? modul('Ankündigungen', `<div class="ebild-raster">${weitere.map(g => karte(g)).join('')}</div>`, { eyebrow: `Game Day · ${weitere.length} weitere Spiele`, fuss: 'Für jedes kommende Spiel liegt ein Game-Day-Bild bereit. Spiele ohne festen Termin zeigen „Termin folgt“ und aktualisieren sich, sobald saisonmanager.de den Termin kennt.' }) : '';
     const ergebn = gespielt.length ? modul('Ergebnisse', `<div class="ebild-raster">${gespielt.map(g => karte(g)).join('')}</div>`, { eyebrow: 'Endstand · nach jedem Spiel automatisch' }) : '';
-    return `${kopf}${demoHinweis()}${leiste}${vorSpiel}${ankuend}${ergebn}${newsroom(true)}
+    const songK = modul('Team-Song', `<p class="meta" style="margin:0 0 12px">„${SONG.titel}“ · ${mmss(SONG.dauer)}</p><div style="display:grid;grid-template-columns:1fr auto;gap:8px"><button class="btn prim wa-knopf" data-aktion="songTeilen">${ico('teilen', 1)} Song teilen</button><a class="btn" href="${SONG.src}" download="${SONG.datei}">Herunterladen</a></div>`, { eyebrow: 'Hier ist unser Vibe' });
+    return `${kopf}${demoHinweis()}${leiste}${vorSpiel}${ankuend}${ergebn}<div class="zwei-sp">${songK}${newsroom(true)}</div>
       <p class="fussnote">Formate: Feed 4:5 für Instagram-Beiträge und WhatsApp, Quadrat 1:1, Story 9:16 für Instagram-Story und WhatsApp-Status. „Bild teilen“ öffnet am Handy das Teilen-Menü.</p>`;
   }
 
@@ -1459,6 +1503,8 @@
       if (a === 'zu') return schliesseSheet();
       if (a === 'team') return teamWechsler();
       if (a === 'mehr') return mehrSheet();
+      if (a === 'vibe') return vibeUmschalten();
+      if (a === 'songTeilen') return songTeilen();
       if (a === 'bildFormat') { bildFormat = el.dataset.format; $$('[data-aktion="bildFormat"]').forEach(b => b.classList.toggle('an', b.dataset.format === bildFormat)); $$('.ebild-vorschau').forEach(v => { v.className = `ebild-vorschau f-${bildFormat}`; v.innerHTML = '<span class="cap t2">Bild wird erstellt …</span>'; }); return ergebnisBildZeigen(); }
       if (a === 'berichtKopieren') { const t = spielberichtText(spielNach[el.dataset.spielId]); if (navigator.clipboard) navigator.clipboard.writeText(t).then(() => { el.textContent = 'Kopiert ✓'; setTimeout(() => { el.textContent = 'Text kopieren'; }, 2000); }, () => {}); return; }
       if (a === 'bildTeilen') return bildTeilen(bildObj(el.dataset.spielId), el);
@@ -1518,6 +1564,7 @@
       return laborErgebnis();
     }
     if (t.id === 'spSuche') { ui.spSuche = t.value; return spListe(); }
+    if (t.id === 'vibeLeiste') { const a = song(); a.currentTime = Number(t.value); const j = $('#vibeJetzt'); if (j) j.textContent = mmss(t.value); return; }
   });
   window.addEventListener('hashchange', () => { if (bereichAusHash()) { bereich = bereichAusHash(); merk.set('bereich', bereich); } schliesseSheet(); zeichne(); });
   if (/^#whatsapp$/i.test(location.hash)) { history.replaceState(null, '', location.pathname + location.search); if (fokus !== UNSER) { fokus = UNSER; } wechsle('matchplan'); whatsappSheet(); }

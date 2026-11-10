@@ -79,7 +79,8 @@ missing time -> `T00:00:00` = "Termin offen"). It also derives:
   scorer, worker) from goals and assists; a `satz` in `daten/profile.js` always wins.
 - Instagram match report (`spielberichtText`) names the own scorers and goalkeeper, never opposing players.
 - WhatsApp message carries exactly one tip (`tippFuer`).
-- The handball goalkeeper tracker, team song and sponsor images were removed.
+- Team song „Geht zur Seite“ (app/assets/geht-zur-seite.mp3, cover generated): player on Start (`vibePlayer`), share/download in Social & Assets.
+- The handball goalkeeper tracker and sponsor images were removed.
 
 ## Working here
 
