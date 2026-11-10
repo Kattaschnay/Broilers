@@ -1,0 +1,10 @@
+total 360
+drwxr-xr-x 2 runner runner   4096 Nov 10 20:07 .
+drwxr-xr-x 6 runner runner   4096 Nov 10 20:07 ..
+-rw-r--r-- 1 runner runner  17015 Nov 10 20:07 icon.jpg
+-rw-r--r-- 1 runner runner  72994 Nov 10 20:07 index.html
+-rw-r--r-- 1 runner runner     32 Nov 10 20:07 inline.css
+-rw-r--r-- 1 runner runner  68378 Nov 10 20:07 kontakt.html
+-rw-r--r-- 1 runner runner 114436 Nov 10 20:07 logo.jpg
+-rw-r--r-- 1 runner runner      0 Nov 10 20:07 ls.txt
+-rw-r--r-- 1 runner runner  73931 Nov 10 20:07 training.html
