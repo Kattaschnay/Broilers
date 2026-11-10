@@ -4,4 +4,6 @@
 // satz: eigener Spruch; ohne Eintrag erzeugt die App einen Spruch aus Toren und Assists.
 // aemter: z. B. ["Kapitän"].
 // Beispiel: "123456": { position: ["C", "ST"], satz: "Ohne Kaffee kein Bully.", aemter: ["Kapitän"] },
-window.HB_PROFILE = {};
+window.HB_PROFILE = {
+  "18768": { satz: "Ich bin’s – geht zur Seite!" }, // Janek Kuberzig
+};

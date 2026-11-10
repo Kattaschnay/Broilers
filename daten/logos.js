@@ -1,1 +1,1 @@
-window.HB_LOGOS = {};
+window.HB_LOGOS = {"10296": "2c4d155b", "10299": "b2dc8154", "10300": "1bf9a02b", "10301": "a3efd2b5", "10302": "bb0ffd3f"};
