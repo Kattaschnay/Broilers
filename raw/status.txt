@@ -1,0 +1,12 @@
+401 api/v2/leagues/2573/schedule.json
+401 api/v2/leagues/2573/table.json
+401 api/v2/leagues/2573/scorer.json
+401 api/v2/leagues/2573.json
+404 api/v2/leagues/2573/game_days.json
+401 api/v2/init.json
+200 fvbb/2573-verbandsliga-herren-kleinfeld
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import json;d=json.load(open('raw/api_v2_leagues_2573_schedule.json'));print(' '.join(str(g.get('game_id') or g.get('id')) for g in d[:40]))
+                                                                                                                                        ~^^^^^
+KeyError: slice(None, 40, None)
