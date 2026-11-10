@@ -1,0 +1,32 @@
+BULLY – Floorball-Prognose für die SG Berlin Broilers (Verbandsliga Herren Kleinfeld, FVBB)
+==========================================================================================
+
+Privates Fan-Projekt, kein Angebot der Berlin Broilers 04 e. V., von Floorball Deutschland oder saisonmanager.de.
+
+WAS DIE APP KANN
+- Start: Siegchance fürs nächste Spiel, Tabellenplatz, Form, „Was sich geändert hat“ (mit Zeitstempel),
+  „Get to know the team“ mit Positionen und einem Spruch je Spieler (aus Toren und Assists, oder eigener Satz).
+- Matchplan: Empfehlungen, „Gegner im Blick“ (Topscorer, Überzahl, stärkste/schwächste Phase, Form),
+  Aufstellung durchrechnen, Spielphasen, Kabinenblatt zum Drucken, WhatsApp-Nachricht mit einem Tipp.
+- Social & Assets: Game-Day- und Endstand-Bilder (Feed 4:5, Quadrat 1:1, Story 9:16) und Spielbericht für
+  Instagram mit Namen der Torschützen.
+- Spiele, Tabelle (mit Saisonende-Simulation), Durchspielen, Spieler, Teams, Methodik.
+
+DATEN (WICHTIG)
+Die Daten kommen von saisonmanager.de. Seit Ende Oktober 2026 braucht man dafür einen API-Schlüssel.
+1. Schlüssel beantragen: https://saisonmanager.de/api-zugang
+2. In GitHub eintragen: Repository → Settings → Secrets and variables → Actions → New repository secret,
+   Name SAISONMANAGER_API_KEY, Wert = der Schlüssel.
+3. Actions → „Daten aktualisieren“ → „Run workflow“. Danach läuft der Abruf täglich und am Wochenende abends.
+Bis dahin zeigt die App DEMODATEN (erfundene Gegner und Namen, deutlich gekennzeichnet).
+Lokal: Schlüssel in eine Datei „.api-key“ im Hauptordner legen und „Start (Mac)“ oder „Start (Windows)“ doppelklicken.
+
+VON HAND PFLEGEN (Ordner daten/)
+- profile.js: Positionen (TW, VT, C, ST), eigener Satz, Ämter je Spieler.
+- fotos.js + fotos/: Fotos NUR fürs eigene Team und NUR mit Zustimmung. Optional Mannschaftsfoto „team“.
+- zusagen.js: Zu- und Absagen fürs nächste Spiel.
+- berichte.js: eigener Absatz im Instagram-Spielbericht.
+
+ONLINE STELLEN
+GitHub Pages (Settings → Pages → Branch main, Ordner /). Bei einem privaten Repository geht das nur mit einem
+bezahlten GitHub-Plan; sonst das Repository öffentlich machen.

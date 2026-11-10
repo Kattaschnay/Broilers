@@ -1,0 +1,4 @@
+.DS_Store
+*.bak
+.api-key
+__pycache__/
