@@ -1,0 +1,26 @@
+name: probe
+on:
+  push:
+    branches: [probe]
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: fetch
+        run: |
+          mkdir -p raw
+          UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36"
+          B=https://saisonmanager.de
+          for p in api/v2/leagues/2573/schedule.json api/v2/leagues/2573/table.json api/v2/leagues/2573/scorer.json api/v2/leagues/2573.json api/v2/leagues/2573/game_days.json api/v2/init.json fvbb/2573-verbandsliga-herren-kleinfeld; do
+            f=raw/$(echo "$p" | tr '/' '_')
+            curl -sS -L -A "$UA" -o "$f" -w "%{http_code} $p\n" "$B/$p" >> raw/status.txt || echo "ERR $p" >> raw/status.txt
+          done
+          ids=$(python3 -c "import json;d=json.load(open('raw/api_v2_leagues_2573_schedule.json'));print(' '.join(str(g.get('game_id') or g.get('id')) for g in d[:40]))" 2>>raw/status.txt || true)
+          for id in $ids; do curl -sS -A "$UA" -o raw/game_$id.json -w "%{http_code} game $id\n" "$B/api/v2/games/$id.json" >> raw/status.txt; done
+      - name: commit
+        run: |
+          git config user.name probe-bot; git config user.email probe@users.noreply.github.com
+          git add raw; git commit -m "probe data"; git push
