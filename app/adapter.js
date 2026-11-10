@@ -17,13 +17,18 @@
   const regularTitles = anyReport ? anyReport.period_titles.filter(p => Number.isInteger(Number(p.period)) && /drittel|halbzeit|hälfte|periode/i.test(p.title || '')) : [];
   const periods = regularTitles.length >= 2 ? regularTitles.length : 2;
   const toSec = t => { const m = /^(\d+):(\d\d)$/.exec(String(t || '').trim()); return m ? Number(m[1]) * 60 + Number(m[2]) : null; };
+  // Event times are either counted per period ("0:07" in the 2nd half) or cumulative ("20:07"); detect which.
+  const allEvents = [].concat(...Object.values(reports).map(r => r.events || []));
+  const perPeriod = allEvents.some(e => Number(e.period) >= 2 && Number(e.period) <= periods && (toSec(e.time) || 0) < 600);
   let maxRegular = 0;
-  Object.values(reports).forEach(r => (r.events || []).forEach(e => {
+  allEvents.forEach(e => {
     const s = toSec(e.time);
     if (s != null && Number(e.period) <= periods && e.event_type !== 'timeout') maxRegular = Math.max(maxRegular, s);
-  }));
+  });
   // Period length: smallest of the usual lengths that covers every regular event (Kleinfeld 15 or 20, Großfeld 20).
-  const periodMin = [10, 12, 15, 20, 25, 30].find(x => x * periods * 60 >= maxRegular) || 20;
+  const periodMin = [10, 12, 15, 20, 25, 30].find(x => x * (perPeriod ? 1 : periods) * 60 >= maxRegular) || 20;
+  // Seconds since the start of the game
+  const gameSec = e => { const s = toSec(e.time); if (s == null) return null; const p = Number(e.period) || 1; return perPeriod ? (Math.min(p, periods + 1) - 1) * periodMin * 60 + s : s; };
   const total = periods * periodMin;
 
   // ---------- point rules ----------
@@ -110,13 +115,13 @@
       const e = gk && lineup[side].find(x => x.player.id === String(gk.player_id));
       if (e) e.starting_goalkeeper = true;
     });
-    const evs = (r.events || []).slice().sort((x, y) => (Number(x.period) - Number(y.period)) || ((toSec(x.time) || 0) - (toSec(y.time) || 0)));
+    const evs = (r.events || []).slice().sort((x, y) => (Number(x.period) - Number(y.period)) || ((toSec(x.time) || 0) - (toSec(y.time) || 0)) || ((x.event_id || 0) - (y.event_id || 0)));
     const out = [];
     const active = { home: [], guest: [] }; // running penalties for power-play detection: {end, minor, left}
     let reg = { home: 0, guest: 0 };
     evs.forEach(e => {
       const side = e.event_team === 'guest' ? 'guest' : 'home', other = side === 'home' ? 'guest' : 'home';
-      const sec = toSec(e.time);
+      const sec = gameSec(e);
       const period = Number(e.period) || 1;
       const minute = sec == null ? 0 : Math.max(1, Math.ceil(sec / 60));
       const who = byNumber[side][String(e.number)];

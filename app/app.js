@@ -64,7 +64,9 @@
   const ligaName = D.leagueName || 'Verbandsliga Herren Kleinfeld';
   const DETAILS = window.HB_DETAILS || {};
 
+  // Namen aus saisonmanager.de sind schon richtig geschrieben; nur komplett großgeschriebene Namen werden angepasst
   function normalisiere(s) {
+    if (String(s) !== String(s).toUpperCase()) return String(s).replace(/\s+[–—]\s+/g, ' · ');
     return String(s).replace(/\s+[–—-]\s+/g, ' · ').split(' ').map(w => {
       if (/^(SC|TSV|TV|FC|BFC|UHC|FBC|SG|SV|ESV|TSC|TUS|VFL|MTV|TSG|II|III|IV|V|VI|KF|GF)$/.test(w)) return w === 'TUS' ? 'TuS' : w === 'VFL' ? 'VfL' : w;
       if (w.length > 1 && w === w.toUpperCase() && /[A-ZÄÖÜ]{2,}/.test(w)) return w.split('-').map(t => t.charAt(0) + t.slice(1).toLowerCase()).join('-');
@@ -736,8 +738,8 @@
   function tippFuer(g, f) {
     const geg = g.heim === f ? g.gast : g.heim, w = gegnerWichtig(g, f).filter(x => x[2] > 0).sort((a, b) => b[2] - a[2])[0];
     const t = Bmp.teams[geg], top = t ? t.liste.filter(s => !s.torwart && s.punkte > 0).sort((a, b) => b.punkteProSpiel - a.punkteProSpiel)[0] : null;
-    if (w && w[3] === 'Schwächste Phase') return `${kurz(geg)} schwächelt ${w[1].split(' (')[0].replace('Minute', 'zwischen Minute')} – genau da Druck machen!`;
-    if (w && w[3] === 'Stärkste Phase') return `${kurz(geg)} ist ${w[1].split(' (')[0].replace('Minute', 'zwischen Minute')} am stärksten – da hinten dicht bleiben.`;
+    if (w && w[3] === 'Schwächste Phase') return `${kurz(geg)} schwächelt ${w[1].split(' (')[0].replace('Minute', 'zwischen Minute').replace(' bis ', ' und ')} – genau da Druck machen!`;
+    if (w && w[3] === 'Stärkste Phase') return `${kurz(geg)} ist ${w[1].split(' (')[0].replace('Minute', 'zwischen Minute').replace(' bis ', ' und ')} am stärksten – da hinten dicht bleiben.`;
     if (w && w[3] === 'Überzahl') return `${kurz(geg)} ist in Überzahl gefährlich – keine unnötigen Strafen!`;
     if (top) return `Auf #${top.nummer} ${top.name.split(' ')[0]} aufpassen: ${top.tore} Tore und ${top.assists} Assists in ${top.anz} Spiel${top.anz === 1 ? '' : 'en'}.`;
     return 'Kompakt stehen, schnell umschalten, Spaß haben!';

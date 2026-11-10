@@ -18,7 +18,8 @@ Die Daten kommen von saisonmanager.de. Seit Ende Oktober 2026 braucht man dafür
 2. In GitHub eintragen: Repository → Settings → Secrets and variables → Actions → New repository secret,
    Name SAISONMANAGER_API_KEY, Wert = der Schlüssel.
 3. Actions → „Daten aktualisieren“ → „Run workflow“. Danach läuft der Abruf täglich und am Wochenende abends.
-Bis dahin zeigt die App DEMODATEN (erfundene Gegner und Namen, deutlich gekennzeichnet).
+Stand 10.11.2026 sind die echten Daten einmalig von Hand eingespielt (scripts/import_browser.py, Spieltag 1–3).
+Ohne Schlüssel aktualisieren sie sich nicht von selbst; dann einfach erneut einspielen lassen.
 Lokal: Schlüssel in eine Datei „.api-key“ im Hauptordner legen und „Start (Mac)“ oder „Start (Windows)“ doppelklicken.
 
 VON HAND PFLEGEN (Ordner daten/)
