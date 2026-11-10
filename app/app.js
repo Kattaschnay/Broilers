@@ -748,7 +748,7 @@
   // ================= WhatsApp-Nachricht =================
   // Kurzer Text fürs Team zum nächsten Spiel mit genau einem Tipp. Automatisch in eine Gruppe schreiben erlaubt WhatsApp
   // nicht, deshalb öffnet ein Knopf WhatsApp mit dem fertigen Text (wa.me), Empfänger und Senden wählt man selbst.
-  const APP_URL = /^https?:/.test(location.protocol) ? location.href.split('#')[0] : 'https://kattaschnay.github.io/Broilers-/app/index.html';
+  const APP_URL = /^https?:/.test(location.protocol) ? location.href.split('#')[0] : 'https://kattaschnay.github.io/Broilers/app/index.html';
   function whatsappText() {
     const g = naechstes(UNSER); if (!g) return '';
     const heim = g.heim === UNSER, geg = heim ? g.gast : g.heim;

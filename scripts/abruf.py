@@ -35,7 +35,7 @@ DATA = os.path.join(ROOT, 'daten')
 CACHE = os.path.join(DATA, 'cache')
 LOGOS = os.path.join(DATA, 'logos')
 BASE = 'https://saisonmanager.de/api/v2/'
-UA = 'Mozilla/5.0 (compatible; bully-floorball-prognose/1.0; +https://github.com/Kattaschnay/Broilers-)'
+UA = 'Mozilla/5.0 (compatible; bully-floorball-prognose/1.0; +https://github.com/Kattaschnay/Broilers)'
 REFETCH_DAYS = 7  # finished games are fetched again for a week, reports get corrected after the fact
 
 
