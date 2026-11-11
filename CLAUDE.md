@@ -18,15 +18,15 @@ sw.js                     Service worker (network first, cache fallback); must s
 abruf.sh, Start (Mac).command, Start (Windows).bat   Launchers, all call scripts/abruf.py
 scripts/abruf.py          Data fetch from saisonmanager.de (Python stdlib only, English)
 scripts/demo.py           Writes clearly marked demo data (FB_DATA.demo = true) in the real API shapes
-app/index.html            Single page: CSS tokens (Broilers: black, gold #E1A72A, Oswald), DOM skeleton, script tags
+app/index.html            Single page: CSS tokens (Broilers: navy-black #09111A, gold #D09E49, Oswald/Lato, Anton headings with rust mask), DOM skeleton, script tags
 app/adapter.js            saisonmanager shapes -> internal shapes of the original app (HB_DATA, HB_DETAILS) + window.SPORT
 app/app.js                UI, routing, rendering (German, IIFE)
 app/modell.js             Team strength model on regulation time, league point rule, season simulation (overtime aware)
 app/spieler.js            Player evaluation (goals, assists, penalty minutes, goalkeeper on/off), match timelines
 app/kennzahlen.js         Per-team metrics: six equal phase slots, penalties, power play / short-handed goals
 app/matchplan.js          Rule engine (AU1, AU2, AU5, AU7, DI1, DI2, PH1, PH2, GE1, GE2 power play, GE3) + lineup optimiser
-app/ergebnisbild.js       Canvas renderer for GAME DAY / END STAND images (style of the club's Instagram posts)
-app/assets/               Icons (own design, not the club crest), keyvisual, OG image, fonts (Oswald, Lato; OFL)
+app/ergebnisbild.js       Canvas renderer, one image per match day: NEXT MATCH (announcement) and MATCH RESULTS (scores + scorers), after the club's design PDF pages 2 and 4 (rooster hahn-ohne.webp, rust texture rost.png, Anton instead of the commercial Zing Rust)
+app/assets/               Icons (rooster from the club's design PDF on navy), keyvisual, OG image, fonts (Oswald, Lato; OFL)
 daten/daten.js            Generated: window.FB_DATA = {leagueId, teamName, fetchedAt, meta, schedule, table, scorer[, demo]}
 daten/spielberichte.js    Generated: window.FB_GAMES = {gameId: games/<id>.json}
 daten/cache/<id>.json     Raw game reports
@@ -53,7 +53,7 @@ Shapes used: schedule item `{game_id, game_day, date, time, arena_name, arena_ad
 ended, result_string, result{home_goals, guest_goals, overtime, forfait, postfix}}`; table row `{team_id, games, won,
 draw, lost, won_ot, lost_ot, goals_scored, goals_received, points, position}`; game report `{players{home|guest:
 [{player_id, player_firstname, player_name, trikot_number, goalkeeper, captain}]}, starting_players, events: [{event_type
-goal|penalty|timeout, event_team home|guest, period, time "mm:ss" cumulative, home_goals, guest_goals, number, assist,
+goal|penalty|timeout, event_team home|guest, period, time "mm:ss" per period (adapter detects this, `gameSec`), home_goals, guest_goals, number, assist,
 goal_type regular|penalty_shot|owngoal|penalty_shots|..., penalty_type penalty_2|penalty_2and2|penalty_5|penalty_10|penalty_ms_*}],
 period_titles, max_lineup_players}`. Player names can be masked by the API (privacy); the adapter falls back to `#number`.
 

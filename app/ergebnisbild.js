@@ -1,189 +1,144 @@
-// Social images in the style of the Broilers' Instagram posts: "GAME DAY" before a match, "END STAND" after it.
-// Formats: feed 4:5, square 1:1, story 9:16. Upper part dark (optional team photo daten/fotos/team.jpg, used only
-// with the team's consent), huge white title over a torn-paper edge, light lower part with league line, time or
-// score in a black box, both crests, venue with a pin at the bottom.
-// Draws on a canvas; logos and photos must be same-origin (daten/logos, daten/fotos), otherwise the canvas is tainted.
+// Social images in the style of the Broilers' own posts (design reference: Janek_Floorball.pdf, pages 2 and 4).
+// Announcement "NEXT MATCH": dark #09111A, rooster dimmed in the centre, white rusty title, rows "Home VS Away",
+// date / times and hall at the bottom. Result "MATCH RESULTS": rooster large on the left, gold rusty title,
+// rows with the score in place of "VS", scorers below. One image per match day with all own games of that day.
+// The original title font (Zing Rust) is commercial; Anton (OFL) plus a generated rust texture stands in for it.
+// Formats: feed 4:5, square 1:1, story 9:16. The design is laid out on a 1080 square and centred vertically.
 (function () {
   'use strict';
-  const W = 1080;
-  const FORMATS = {
-    feed: { h: 1350, edge: 0.5, title: 250, top: 0, bottom: 0 },
-    quadrat: { h: 1080, edge: 0.47, title: 200, top: 0, bottom: 0 },
-    story: { h: 1920, edge: 0.5, title: 300, top: 160, bottom: 200 },
-  };
-  const F = { black: 'BullyLatoBlack', bold: 'BullyLatoBold', cond: 'BullyOswald' };
-  const C = { dark: '#141416', dark2: '#2A2A2E', paper: '#ECECEC', ink: '#1A1A1C', grey: '#6E6E73', light: '#B9B9BE', white: '#FFFFFF', gold: '#E1A72A', red: '#D93A2B' };
+  const W = 1080, S = 1080;
+  const FORMATS = { feed: { h: 1350 }, quadrat: { h: 1080 }, story: { h: 1920 } };
+  const C = { bg: '#09111A', gold: '#D09E49', white: '#FFFFFF', soft: 'rgba(255,255,255,.92)' };
+  const F = { title: 'BullyAnton', text: 'BullyLato', bold: 'BullyLatoBold' };
 
-  let fonts = null;
-  function loadFonts() {
-    if (fonts) return fonts;
-    const list = [
-      new FontFace(F.black, "url('assets/fonts/lato-black.woff') format('woff')", { weight: '900' }),
-      new FontFace(F.bold, "url('assets/fonts/lato-bold.woff') format('woff')", { weight: '700' }),
-      new FontFace(F.cond, "url('assets/fonts/oswald-700.woff') format('woff')", { weight: '700' }),
-    ];
-    fonts = Promise.all(list.map(f => f.load().then(x => { document.fonts.add(x); return x; }).catch(() => null)));
-    return fonts;
+  let ready = null;
+  function load() {
+    if (ready) return ready;
+    const fonts = [
+      new FontFace(F.title, "url('assets/fonts/anton.woff') format('woff')"),
+      new FontFace(F.text, "url('assets/fonts/lato-regular.woff') format('woff')"),
+      new FontFace(F.bold, "url('assets/fonts/lato-bold.woff') format('woff')"),
+    ].map(f => f.load().then(x => { document.fonts.add(x); }).catch(() => null));
+    ready = Promise.all([img('assets/hahn-ohne.webp'), img('assets/rost.png'), ...fonts]).then(([hahn, rost]) => ({ hahn, rost }));
+    return ready;
   }
-  function loadImage(src) {
-    return new Promise(res => {
-      if (!src) return res(null);
-      const i = new Image();
-      i.onload = () => res(i); i.onerror = () => res(null);
-      i.src = src;
-    });
+  function img(src) {
+    return new Promise(res => { if (!src) return res(null); const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
   }
-  // Shrink text until it fits the width
   function fit(ctx, text, family, size, maxW, weight = '') {
     let g = size;
-    do { ctx.font = `${weight} ${g}px ${family}`.trim(); g -= 2; } while (ctx.measureText(text).width > maxW && g > 12);
+    do { ctx.font = `${weight} ${g}px ${family}`.trim(); g -= 2; } while (ctx.measureText(text).width > maxW && g > 10);
     return g + 2;
   }
-  // Seeded random so the torn edge stays the same for one match
-  function rng(seed) { let s = seed >>> 0 || 1; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
-
-  function background(ctx, H, edgeY, photo) {
-    if (photo) {
-      const q = Math.max(W / photo.width, edgeY / photo.height), w = photo.width * q, h = photo.height * q;
-      ctx.drawImage(photo, (W - w) / 2, Math.min(0, (edgeY - h) / 2), w, h);
-      const g = ctx.createLinearGradient(0, 0, 0, edgeY);
-      g.addColorStop(0, 'rgba(10,10,12,.35)'); g.addColorStop(1, 'rgba(10,10,12,.55)');
-      ctx.fillStyle = g; ctx.fillRect(0, 0, W, edgeY + 40);
-      return;
+  // Rusty title text: sized by cap height (cap), drawn on its own canvas, then the rust texture punches holes into it.
+  // y is the baseline. opt.maxW squeezes the text horizontally (like the condensed original).
+  function rusty(ctx, A, text, x, y, cap, color, opt = {}) {
+    const c = document.createElement('canvas'), k = c.getContext('2d');
+    k.font = `100px ${F.title}`;
+    const m = k.measureText('H'), ratio = (m.actualBoundingBoxAscent || 73) / 100;
+    const size = cap / ratio;
+    k.font = `${size}px ${F.title}`;
+    let w = k.measureText(text).width;
+    const sx = (opt.maxW && w > opt.maxW ? opt.maxW / w : 1) * (opt.wide || 1);
+    w *= sx;
+    const pad = size * 0.25;
+    c.width = Math.ceil(w + pad * 2 + Math.abs(opt.skew || 0) * cap); c.height = Math.ceil(cap + pad * 2);
+    k.font = `${size}px ${F.title}`; k.textBaseline = 'alphabetic'; k.fillStyle = color;
+    k.save(); k.translate(pad, pad + cap); if (opt.skew) k.transform(1, 0, opt.skew, 1, 0, 0); k.scale(sx, 1); k.fillText(text, 0, 0); k.restore();
+    if (A.rost) {
+      k.globalCompositeOperation = 'destination-in';
+      const scale = Math.max(0.35, cap / 260), pat = k.createPattern(A.rost, 'repeat');
+      k.save(); k.scale(scale, scale); k.translate(-((opt.seed || 0) * 37 % 512), -((opt.seed || 0) * 91 % 512)); k.fillStyle = pat; k.fillRect(0, 0, c.width / scale + 1024, c.height / scale + 1024); k.restore();
     }
-    const g = ctx.createLinearGradient(0, 0, W, edgeY);
-    g.addColorStop(0, C.dark2); g.addColorStop(1, C.dark);
-    ctx.fillStyle = g; ctx.fillRect(0, 0, W, edgeY + 40);
-    // floorball holes as a quiet texture
-    ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,.05)'; ctx.lineWidth = 3;
-    for (let y = 60; y < edgeY; y += 120) for (let x = (y / 120) % 2 ? 60 : 0; x < W + 60; x += 120) { ctx.beginPath(); ctx.arc(x, y, 26, 0, Math.PI * 2); ctx.stroke(); }
-    ctx.restore();
-    // gold sweep like the crest ribbon
-    ctx.save(); ctx.globalAlpha = .9; ctx.fillStyle = C.gold;
-    ctx.beginPath(); ctx.moveTo(W - 300, 0); ctx.lineTo(W - 250, 0); ctx.lineTo(W - 470, edgeY); ctx.lineTo(W - 520, edgeY); ctx.closePath(); ctx.fill();
-    ctx.globalAlpha = .35; ctx.beginPath(); ctx.moveTo(W - 220, 0); ctx.lineTo(W - 200, 0); ctx.lineTo(W - 420, edgeY); ctx.lineTo(W - 440, edgeY); ctx.closePath(); ctx.fill();
-    ctx.restore();
+    const left = opt.align === 'center' ? x - w / 2 - pad : opt.align === 'right' ? x - w - pad : x - pad;
+    ctx.drawImage(c, left, y - cap - pad);
+    return w;
   }
-
-  function tornPaper(ctx, H, edgeY, seed) {
-    const r = rng(seed);
-    ctx.save();
-    ctx.fillStyle = C.paper;
-    ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 24; ctx.shadowOffsetY = -6;
-    ctx.beginPath(); ctx.moveTo(0, H); ctx.lineTo(0, edgeY + 10);
-    for (let x = 0; x <= W; x += 18) ctx.lineTo(x, edgeY + (r() - 0.5) * 26 + Math.sin(x / 90) * 8);
-    ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
-    ctx.restore();
-    // light fibres along the edge
-    ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 2;
-    for (let i = 0; i < 40; i++) { const x = r() * W, y = edgeY + (r() - 0.5) * 20; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 8 + r() * 16, y + (r() - 0.5) * 6); ctx.stroke(); }
-    ctx.restore();
-  }
-
-  function crest(ctx, img, mono, cx, cy, size) {
-    if (img) {
-      const q = Math.min(size / img.width, size / img.height), w = img.width * q, h = img.height * q;
-      ctx.save(); ctx.beginPath(); ctx.roundRect(cx - size / 2, cy - size / 2, size, size, 18); ctx.clip();
-      ctx.drawImage(img, cx - w / 2, cy - h / 2, w, h); ctx.restore();
-      return;
+  function background(ctx, H, A, mode, oy) {
+    ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+    if (!A.hahn) return;
+    if (mode === 'announce') {
+      // rooster centred, dimmed behind the text
+      const s = S * 1.15, x = (W - s) / 2 + s * 0.1, y = oy + S * 0.19;
+      ctx.drawImage(A.hahn, x, y, s * 0.8, s * 0.711);
+      ctx.fillStyle = 'rgba(9,17,26,.62)'; ctx.fillRect(0, 0, W, H);
+      // the wordmark under the rooster stays hidden: fade to the background at the bottom
+      const g = ctx.createLinearGradient(0, oy + S * 0.9, 0, oy + S * 1.05); g.addColorStop(0, 'rgba(9,17,26,0)'); g.addColorStop(1, C.bg);
+      ctx.fillStyle = g; ctx.fillRect(0, oy + S * 0.9, W, H);
+    } else {
+      // rooster large on the left, head at the left edge, slightly dimmed
+      const s = S * 1.56;
+      ctx.drawImage(A.hahn, -0.71 * S + s * 0.1, oy - 0.01 * S, s * 0.8, s * 0.711);
+      ctx.fillStyle = 'rgba(9,17,26,.22)'; ctx.fillRect(0, 0, W, H);
     }
-    ctx.save(); ctx.fillStyle = C.ink; ctx.beginPath(); ctx.roundRect(cx - size / 2, cy - size / 2, size, size, 18); ctx.fill();
-    ctx.fillStyle = C.white; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = `${Math.round(size * .42)}px ${F.black}`;
-    ctx.fillText(mono || '?', cx, cy + 4); ctx.restore();
+  }
+  function text(ctx, t, x, y, size, color, opt = {}) {
+    ctx.fillStyle = color; ctx.textAlign = opt.align || 'left'; ctx.textBaseline = 'alphabetic';
+    ctx.shadowColor = 'rgba(9,17,26,.85)'; ctx.shadowBlur = 14; ctx.shadowOffsetY = 2; // stays readable on the rooster
+    if (opt.maxW) fit(ctx, t, opt.bold ? F.bold : F.text, size, opt.maxW, opt.bold ? '700' : '');
+    else ctx.font = `${opt.bold ? '700 ' : ''}${size}px ${opt.bold ? F.bold : F.text}`;
+    ctx.fillText(t, x, y);
+    ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+  }
+  // wraps only between list items ("3x Janek, 2x Lennart") so a name never splits
+  function wrap(ctx, t, maxW) {
+    const words = t.split(', '), lines = []; let cur = '';
+    words.forEach((w, i) => { const item = w + (i < words.length - 1 ? ',' : ''); const n = cur ? cur + ' ' + item : item; if (ctx.measureText(n).width > maxW && cur) { lines.push(cur); cur = item; } else cur = n; });
+    if (cur) lines.push(cur);
+    return lines;
   }
 
-  function pin(ctx, x, y, s, color) {
-    ctx.save(); ctx.fillStyle = color; ctx.beginPath();
-    ctx.moveTo(x, y + s); ctx.bezierCurveTo(x - s * .9, y + s * .1, x - s * .6, y - s * .75, x, y - s * .75);
-    ctx.bezierCurveTo(x + s * .6, y - s * .75, x + s * .9, y + s * .1, x, y + s); ctx.fill();
-    ctx.fillStyle = C.paper; ctx.beginPath(); ctx.arc(x, y - s * .2, s * .25, 0, Math.PI * 2); ctx.fill(); ctx.restore();
-  }
-
-  // d.art: 'ergebnis' (end stand) or 'matchday' (game day)
+  // d: { art: 'matchday'|'ergebnis', liga, datum ('15.03.2026'), datumLang, halle, zeiten ('12:30 & 14 Uhr'),
+  //      spiele: [{ heim, gast, toreHeim, toreGast, zusatz }], torschuetzen ('3x Janek, 2x Lennart'), seed }
   async function draw(d, format = 'feed') {
-    const L = FORMATS[format] || FORMATS.feed, H = L.h, md = d.art === 'matchday';
-    await loadFonts();
-    const [lHome, lAway, photo] = await Promise.all([loadImage(d.heim.logo), loadImage(d.gast.logo), loadImage(d.foto || null)]);
+    const H = (FORMATS[format] || FORMATS.feed).h, oy = (H - S) / 2;
+    const A = await load();
     const c = document.createElement('canvas'); c.width = W; c.height = H;
     const ctx = c.getContext('2d');
-    const usable = H - L.top - L.bottom;
-    const edgeY = L.top + usable * L.edge;
-    background(ctx, H, edgeY, photo);
-    tornPaper(ctx, H, edgeY, String(d.heim.name + d.gast.name + d.runde).split('').reduce((a, ch) => a * 31 + ch.charCodeAt(0), 7));
+    const seed = d.seed || 1, md = d.art === 'matchday';
+    background(ctx, H, A, md ? 'announce' : 'result', oy);
+    const spiele = (d.spiele || []).slice(0, 3);
 
-    // date top left (game day) or result label (end stand)
-    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-    const tx = 64, ty = L.top + 64;
-    if (md && d.tag) {
-      ctx.fillStyle = 'rgba(255,255,255,.82)'; ctx.font = `140px ${F.black}`; ctx.fillText(d.tag, tx, ty + 120);
-      ctx.fillStyle = 'rgba(205,205,210,.82)'; ctx.font = `92px ${F.black}`; ctx.fillText(d.monat, tx, ty + 214);
-    } else if (md) {
-      ctx.fillStyle = 'rgba(255,255,255,.82)'; ctx.font = `64px ${F.black}`; ctx.fillText('TERMIN', tx, ty + 70); ctx.fillText('FOLGT', tx, ty + 136);
-    } else if (d.etikett) {
-      ctx.font = `56px ${F.black}`;
-      const w = ctx.measureText(d.etikett).width + 56;
-      ctx.fillStyle = d.etikett === 'SIEG' ? C.gold : d.etikett === 'REMIS' ? C.light : C.white;
-      ctx.beginPath(); ctx.roundRect(tx, ty + 20, w, 84, 10); ctx.fill();
-      ctx.fillStyle = C.ink; ctx.fillText(d.etikett, tx + 28, ty + 83);
-    }
-
-    // huge title, second line sitting on the torn edge
-    const lines = md ? ['GAME', 'DAY'] : ['END', 'STAND'];
-    ctx.textAlign = 'center'; ctx.fillStyle = C.white;
-    ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 6;
-    const ts = Math.min(...lines.map(l => fit(ctx, l, F.black, L.title, W - 110, '900')));
-    ctx.font = `900 ${ts}px ${F.black}`;
-    const lh = ts * 0.86;
-    ctx.fillText(lines[0], W / 2, edgeY - lh * 0.42);
-    ctx.fillText(lines[1], W / 2, edgeY + lh * 0.5);
-    ctx.shadowColor = 'transparent';
-
-    // league line
-    let y = edgeY + lh * 0.5 + 78;
-    const liga = `${d.liga} – ${d.eigenSeite === 'gast' ? d.gast.name : d.heim.name}`.toUpperCase();
-    ctx.fillStyle = C.ink; fit(ctx, liga, F.bold, 40, W - 140, '700'); ctx.fillText(liga, W / 2, y);
-
-    // middle row between league line and footer: crests left and right, box in the middle
-    const fy = H - L.bottom - 58, frei = (fy - 64) - y;
-    const cs = Math.max(110, Math.min(220, frei * 0.42));
-    const rowY = y + 30 + Math.max(cs / 2 + 70, Math.min(frei * 0.34, cs / 2 + 220));
-    crest(ctx, lHome, d.heim.mono, 220, rowY, cs);
-    crest(ctx, lAway, d.gast.mono, W - 220, rowY, cs);
-    const bw = 300, bh = 116;
+    // positions measured on the reference posts (1250 px) and scaled to 1080
     if (md) {
-      ctx.fillStyle = C.ink; ctx.font = `64px ${F.black}`; ctx.fillText(d.zeit || 'TBA', W / 2, rowY - 34);
-      ctx.fillStyle = C.ink; ctx.beginPath(); ctx.roundRect(W / 2 - bw / 2 + 20, rowY - 8, bw - 40, bh - 20, 4); ctx.fill();
-      ctx.fillStyle = C.white; ctx.font = `76px ${F.black}`; ctx.fillText('VS.', W / 2, rowY + 70);
+      rusty(ctx, A, 'NEXT', 152, oy + 132, 64, C.white, { skew: -0.14, seed });
+      rusty(ctx, A, 'MATCH', 250, oy + 336, 182, C.white, { maxW: 605, seed: seed + 3 });
+      text(ctx, (d.liga || '').toUpperCase(), 245, oy + 396, 31, C.white, { maxW: 700 });
+      const n = spiele.length, top = oy + (n === 1 ? 650 : n === 2 ? 575 : 545), step = n === 3 ? 130 : 160;
+      spiele.forEach((g, i) => {
+        const y = top + i * step;
+        text(ctx, g.heim, 100, y, 45, C.white, { maxW: 425 });
+        rusty(ctx, A, 'VS', 577, y + 6, 52, C.gold, { align: 'center', skew: -0.1, seed: seed + 11 + i });
+        text(ctx, g.gast, 640, y, 45, C.white, { maxW: 425 });
+      });
+      const dy = oy + 966;
+      text(ctx, d.datum || 'Termin folgt', 500, dy, 50, C.white, { align: 'right' });
+      rusty(ctx, A, '/', 566, dy + 8, 50, C.gold, { align: 'center', skew: -0.15, seed: seed + 21 });
+      if (d.zeiten) text(ctx, d.zeiten, 640, dy, 50, C.white, { maxW: 420 });
+      if (d.halle) text(ctx, d.halle, W / 2, oy + 1030, 29, C.white, { align: 'center', maxW: 900 });
     } else {
-      ctx.fillStyle = C.ink; ctx.beginPath(); ctx.roundRect(W / 2 - bw / 2, rowY - bh / 2 - 8, bw, bh + 16, 6); ctx.fill();
-      ctx.font = `104px ${F.black}`; ctx.textBaseline = 'middle';
-      const h = String(d.toreHeim), a = String(d.toreGast);
-      ctx.textAlign = 'right'; ctx.fillStyle = d.eigenSeite === 'heim' ? C.gold : C.white; ctx.fillText(h, W / 2 - 26, rowY + 4);
-      ctx.textAlign = 'left'; ctx.fillStyle = d.eigenSeite === 'gast' ? C.gold : C.white; ctx.fillText(a, W / 2 + 26, rowY + 4);
-      ctx.textAlign = 'center'; ctx.fillStyle = C.white; ctx.fillText(':', W / 2, rowY);
-      ctx.textBaseline = 'alphabetic';
-      const sub = [d.zusatz, d.perioden].filter(Boolean).join(' · ');
-      if (sub) { ctx.fillStyle = C.grey; fit(ctx, sub, F.bold, 30, 420, '700'); ctx.fillText(sub, W / 2, rowY + bh / 2 + 52); }
+      rusty(ctx, A, 'MATCH', 275, oy + 132, 64, C.gold, { skew: -0.14, seed });
+      rusty(ctx, A, 'RESULTS', 300, oy + 336, 182, C.gold, { maxW: 740, seed: seed + 5 });
+      text(ctx, `${(d.liga || '').toUpperCase()} | ${(d.datumLang || '').toUpperCase()}`, 640, oy + 404, 27, C.gold, { align: 'center', maxW: 700 });
+      spiele.forEach((g, i) => {
+        const y = oy + 520 + i * 100;
+        text(ctx, g.heim, 286, y, 38, C.gold, { bold: true, maxW: 300 });
+        rusty(ctx, A, `${g.toreHeim}:${g.toreGast}`, 646, y + 4, 46, C.white, { align: 'center', seed: seed + 13 + i });
+        text(ctx, g.gast + (g.zusatz ? ` (${g.zusatz})` : ''), 722, y, 38, C.gold, { bold: true, maxW: 330 });
+      });
+      if (d.torschuetzen) {
+        ctx.font = `30px ${F.text}`;
+        const lines = wrap(ctx, d.torschuetzen, 560).slice(0, 4);
+        const y0 = oy + 520 + spiele.length * 100 + 50;
+        lines.forEach((l, i) => text(ctx, l, 720, y0 + i * 42, 30, C.gold, { align: 'center' }));
+      }
     }
-    // team names under the crests
-    ctx.fillStyle = C.ink; ctx.textAlign = 'center';
-    [[d.heim.kurz || d.heim.name, 220], [d.gast.kurz || d.gast.name, W - 220]].forEach(([n, x]) => { fit(ctx, n.toUpperCase(), F.cond, 32, 300, '700'); ctx.fillText(n.toUpperCase(), x, rowY + cs / 2 + 44); });
-
-    // saying, only if there is room above the footer
-    const sy = rowY + cs / 2 + 112;
-    if (d.spruch && sy < fy - 80) { ctx.fillStyle = C.grey; ctx.textAlign = 'center'; fit(ctx, d.spruch, F.bold, 36, W - 160, '700'); ctx.fillText(d.spruch, W / 2, sy); }
-
-    // footer: venue left with pin, club right
-    ctx.strokeStyle = 'rgba(0,0,0,.12)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(64, fy - 52); ctx.lineTo(W - 64, fy - 52); ctx.stroke();
-    ctx.textAlign = 'left';
-    if (d.halle) {
-      pin(ctx, 84, fy - 12, 26, C.ink);
-      ctx.fillStyle = C.ink; fit(ctx, d.halle, F.bold, 28, 520, '700'); ctx.fillText(d.halle, 124, fy - 10);
-      ctx.fillStyle = C.grey; ctx.font = `700 22px ${F.bold}`; ctx.fillText(md ? (d.datumLang || '') : `Spieltag ${d.runde} · ${d.datumLang}`, 124, fy + 22);
+    // footer for the taller formats: club line
+    if (H > S) {
+      ctx.globalAlpha = .75;
+      text(ctx, 'BERLIN BROILERS 04 · FLOORBALL', W / 2, H - (format === 'story' ? 250 : 60), 26, C.gold, { align: 'center', bold: true });
+      ctx.globalAlpha = 1;
     }
-    ctx.textAlign = 'right';
-    ctx.fillStyle = C.ink; ctx.font = `700 34px ${F.cond}`; ctx.fillText('BERLIN BROILERS', W - 64, fy - 8);
-    ctx.fillStyle = C.gold; ctx.font = `700 26px ${F.cond}`; ctx.fillText('04 · FLOORBALL', W - 64, fy + 24);
     return c;
   }
 

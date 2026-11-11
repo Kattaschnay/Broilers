@@ -8,7 +8,7 @@
 //   offline der zuletzt gesehene. Fremde Ursprünge (Teamlogos von saisonmanager.de) werden nicht angefasst.
 // Cache-Schlüssel sind die URLs ohne ?v= und ?t=, so finden sich die Dateien auch nach einem Versionswechsel.
 
-const CACHE = 'bully-1'; // hochzählen, wenn sich die Liste unten ändert; alte Caches werden beim Aktivieren gelöscht
+const CACHE = 'bully-2'; // hochzählen, wenn sich die Liste unten ändert; alte Caches werden beim Aktivieren gelöscht
 const SHELL = [
   'index.html',
   'app/index.html',
@@ -24,7 +24,10 @@ const SHELL = [
   'app/assets/fonts/lato-bold.woff',
   'app/assets/fonts/lato-black.woff',
   'app/manifest.json',
-  'app/assets/favicon.svg',
+  'app/assets/favicon.png',
+  'app/assets/hahn-ohne.webp',
+  'app/assets/rost.png',
+  'app/assets/fonts/anton.woff',
   'app/assets/icon-180.png',
   'app/assets/icon-512.png',
   'app/assets/keyvisual.jpg',

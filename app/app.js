@@ -1,7 +1,7 @@
 (function () {
   'use strict';
   const APP = 'Bully';
-  const ABSENDER = 'Bully ist ein privates Fan-Projekt, kein Angebot der Berlin Broilers 04 e. V., von Floorball Deutschland oder saisonmanager.de. Daten: saisonmanager.de.';
+  const ABSENDER = 'Bully ist ein inoffizielles, privates Fan-Projekt, kein Angebot der Berlin Broilers 04 e. V., von Floorball Deutschland oder saisonmanager.de. Daten: Saisonmanager / Floorball Verband Deutschland e. V.';
   // Floorball-Struktur der Liga aus app/adapter.js: Halbzeiten oder Drittel, Spieldauer, Punkteregel
   const SPORT = window.SPORT || { periods: 2, periodMin: 20, total: 40, slotMin: 40 / 6, slotLabel: i => String(Math.round(i * 40 / 6)), draws: true, drawLabel: 'Remis', periodName: 'Halbzeit', periodNames: ['1. Halbzeit', '2. Halbzeit'] };
   const DAUER = SPORT.total, REMIS = SPORT.drawLabel;
@@ -854,31 +854,42 @@
     const l = SPRUECHE[k]; return l[Math.abs(Number(g.id)) % l.length];
   }
   const saisonVon = d => { const j = d.getUTCFullYear(); return d.getUTCMonth() >= 6 ? `${j}/${String(j + 1).slice(2)}` : `${j - 1}/${String(j).slice(2)}`; };
-  const TEAMFOTO = FOTOS.team ? `../daten/fotos/team.jpg?u=${encodeURIComponent(FOTOS.team)}` : null; // Mannschaftsfoto, nur mit Zustimmung
-  const bildTeam = id => ({ name: lang(id), kurz: kurz(id), logo: logoLokal(id), mono: teams[id] ? teams[id].mono : '?' });
+  // Ein Bild je Spieltag: alle Spiele des eigenen Teams am selben Tag (Kleinfeld: meist zwei)
+  const tagKey = g => g.datum.toISOString().slice(0, 10);
+  const tagesSpiele = g => spiele.filter(x => (x.heim === UNSER || x.gast === UNSER) && tagKey(x) === tagKey(g)).sort((a, b) => a.datum - b.datum);
+  const MONATE = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+  const datumPunkt = d => `${String(d.getUTCDate()).padStart(2, '0')}.${String(d.getUTCMonth() + 1).padStart(2, '0')}.${d.getUTCFullYear()}`;
+  const uhr = d => { const h = d.getUTCHours(), m = d.getUTCMinutes(); return m ? `${h}:${String(m).padStart(2, '0')}` : `${h}`; };
+  // Torschützen des eigenen Teams an diesem Tag, mit Vornamen wie in den Posts („3x Janek, 2x Lennart“)
+  function torschuetzenTag(liste) {
+    const z = {};
+    liste.forEach(g => {
+      const L = DETAILS[g.id] && DETAILS[g.id].l && DETAILS[g.id].l.data; if (!L) return;
+      ((L[g.heim === UNSER ? 'local' : 'visitor'] || {}).players || []).forEach(p => { if (p.goals) { const k = p.player.id; z[k] = z[k] || { v: p.player.first_name, n: p.player.last_name, t: 0 }; z[k].t += p.goals; } });
+    });
+    const l = Object.values(z), doppelt = v => l.filter(x => x.v === v).length > 1;
+    return l.sort((a, b) => b.t - a.t).map(x => `${x.t}x ${x.v}${doppelt(x.v) ? ' ' + (x.n || '')[0] + '.' : ''}`).join(', ');
+  }
   function ergebnisDaten(g) {
     if (!g.gewertet) return matchdayDaten(g);
-    const eigen = g.heim === UNSER ? 'heim' : g.gast === UNSER ? 'gast' : null;
-    const eig = eigen === 'heim' ? g.toreHeim - g.toreGast : g.toreGast - g.toreHeim;
-    const v = B.verlaeufe[g.id];
+    const liste = tagesSpiele(g).filter(x => x.gewertet);
     return {
-      art: 'ergebnis', heim: bildTeam(g.heim), gast: bildTeam(g.gast), toreHeim: g.toreHeim, toreGast: g.toreGast, zusatz: g.zusatz,
-      perioden: v ? periodenText(v) : '', runde: g.runde, saison: saisonVon(g.datum), liga: ligaName, mannschaft: MANNSCHAFT,
-      datumLang: `${tagLang(g.datum)} ${g.datum.getUTCFullYear()}`, halle: g.halle ? normalisiere(g.halle) : '', verein: VEREIN,
-      foto: TEAMFOTO, eigenSeite: eigen, etikett: !eigen ? '' : eig > 0 ? 'SIEG' : eig === 0 ? 'REMIS' : 'NIEDERLAGE', spruch: eigen ? spruchFuer(g) : '',
+      art: 'ergebnis', liga: SOCIAL_LIGA, datumLang: `${g.datum.getUTCDate()}. ${MONATE[g.datum.getUTCMonth()]} ${g.datum.getUTCFullYear()}`,
+      spiele: liste.map(x => ({ heim: kurz(x.heim), gast: kurz(x.gast), toreHeim: x.toreHeim, toreGast: x.toreGast, zusatz: x.zusatz })),
+      torschuetzen: torschuetzenTag(liste), seed: Number(g.id) % 97, spruch: spruchFuer(g),
     };
   }
+  function matchdayDaten(g) {
+    const liste = tagesSpiele(g).filter(x => !x.gewertet);
+    const zeiten = g.terminOffen ? '' : `${liste.map(x => uhr(x.datum)).join(' & ')} Uhr`;
+    return {
+      art: 'matchday', liga: SOCIAL_LIGA, datum: g.terminOffen ? 'Termin folgt' : datumPunkt(g.datum), zeiten,
+      spiele: liste.map(x => ({ heim: kurz(x.heim), gast: kurz(x.gast) })), halle: g.halle ? normalisiere(g.halle) : '', seed: Number(g.id) % 97,
+    };
+  }
+  const SOCIAL_LIGA = 'Kleinfeld Verbandsliga';
   const BILDFORMATE = [['feed', 'Feed 4:5'], ['quadrat', 'Quadrat 1:1'], ['story', 'Story 9:16']];
   let bildFormat = 'feed';
-  function matchdayDaten(g) {
-    return {
-      art: 'matchday', heim: bildTeam(g.heim), gast: bildTeam(g.gast), runde: g.runde, saison: saisonVon(g.datum), liga: ligaName, mannschaft: MANNSCHAFT,
-      tag: g.terminOffen ? null : String(g.datum.getUTCDate()), monat: g.terminOffen ? null : ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'][g.datum.getUTCMonth()],
-      datumLang: g.terminOffen ? 'Termin folgt' : `${tagLang(g.datum)} ${g.datum.getUTCFullYear()}`, zeit: g.terminOffen ? null : zeit(g.datum),
-      halle: g.halle ? normalisiere(g.halle) : '', adresse: g.adresse || '', verein: VEREIN, foto: TEAMFOTO, eigenSeite: g.heim === UNSER ? 'heim' : g.gast === UNSER ? 'gast' : null,
-      spruch: spruchFuer(g),
-    };
-  }
   // ================= Spielbericht für Instagram =================
   // Aus der Torfolge (B.verlaeufe) und den Strafen: Start, größte Führungen, Läufe, Pausenstände, Aufholjagden,
   // Überzahl, Schlussphase, Verlängerung. Mit Namen der eigenen Torschützen und des Torhüters (gegnerische Spieler
@@ -997,7 +1008,7 @@
   const berichtHtml = g => { const t = spielberichtText(g); return t ? `<details class="bericht"><summary>Spielbericht für Instagram</summary><pre class="wa-vorschau">${esc(t)}</pre><button class="btn" data-aktion="berichtKopieren" data-spiel-id="${g.id}" style="width:100%;margin-top:8px">Text kopieren</button></details>` : ''; };
 
   const bildObj = id => spielNach[id];
-  const bildName = g => `${g.gewertet ? 'endstand' : 'gameday'}-${kurz(g.heim)}-${kurz(g.gast)}-${g.datum.toISOString().slice(0, 10)}-${bildFormat}.png`.toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss').replace(/[^a-z0-9.-]+/g, '-');
+  const bildName = g => `broilers-${g.gewertet ? 'results' : 'next-match'}-${g.datum.toISOString().slice(0, 10)}-${bildFormat}.png`;
   let bildCache = {};
   function ergebnisBildFuer(g) {
     const k = `${g.id}:${bildFormat}`;
@@ -1036,9 +1047,12 @@
   function seiteSocial() {
     const kopf = seitenkopf('Social & Assets', `${esc(kurz(UNSER))} · Game-Day- und Endstand-Bilder, Spielberichte und Nachrichten zum Teilen`);
     const meine = spiele.filter(g => g.heim === UNSER || g.gast === UNSER);
-    const kommend = meine.filter(g => g.offen), gespielt = meine.filter(g => g.gewertet).slice().reverse();
+    // ein Bild je Spieltag: nur das erste Spiel eines Tages bekommt eine Karte
+    const jeTag = l => l.filter((g, i) => l.findIndex(x => tagKey(x) === tagKey(g)) === i);
+    const kommend = jeTag(meine.filter(g => g.offen)), gespielt = jeTag(meine.filter(g => g.gewertet)).reverse();
     const naechstes = kommend[0];
-    const titelVon = g => `${g.terminOffen ? 'Termin folgt' : tagKurz(g.datum)} · gegen ${esc(kurz(g.heim === UNSER ? g.gast : g.heim))}${g.gewertet ? ` · ${g.heim === UNSER ? stand(g.toreHeim, g.toreGast) : stand(g.toreGast, g.toreHeim)}${g.zusatz ? ' ' + g.zusatz : ''}` : ''}`;
+    const titelVon = g => { const l = tagesSpiele(g).filter(x => x.gewertet === g.gewertet);
+      return `${g.terminOffen ? 'Termin folgt' : tagKurz(g.datum)} · ${l.map(x => `${g.gewertet ? '' : 'gegen '}${esc(kurz(x.heim === UNSER ? x.gast : x.heim))}${x.gewertet ? ' ' + (x.heim === UNSER ? stand(x.toreHeim, x.toreGast) : stand(x.toreGast, x.toreHeim)) : ''}`).join(' · ')}`; };
     // Am Handy als aufklappbare Zeile (nur das nächste Spiel offen), am Computer immer offen
     const mobil = window.innerWidth < 600;
     const karte = (g, offen) => `<details class="ebild-karte"${!mobil || offen ? ' open' : ''}><summary class="ebild-titel">${g.gewertet ? `<span class="sun ${ergebnisAus(g, UNSER)}">${ergebnisAus(g, UNSER)}</span>` : `<span class="md-punkt">${ico('kalender', 1)}</span>`}<span>${titelVon(g)}</span>${mobil ? ico('chev', 1) : ''}</summary>${ergebnisBildHtml(g, true)}${g.gewertet ? berichtHtml(g) : ''}</details>`;

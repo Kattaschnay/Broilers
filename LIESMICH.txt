@@ -31,3 +31,6 @@ VON HAND PFLEGEN (Ordner daten/)
 ONLINE STELLEN
 GitHub Pages (Settings → Pages → Branch main, Ordner /). Bei einem privaten Repository geht das nur mit einem
 bezahlten GitHub-Plan; sonst das Repository öffentlich machen.
+
+Design (11.11.2026): Farben und Bilder nach der Design-Vorlage (Janek_Floorball.pdf, Seite 2 = Ankündigung, Seite 4 = Ergebnis).
+Schrift Anton (frei, OFL) mit Rost-Effekt statt der kommerziellen Zing Rust. Pro Spieltag ein Bild mit allen eigenen Spielen.

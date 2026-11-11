@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F3F2EF" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0B0B0C" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#09111A" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Bully">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
-<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="icon" type="image/png" href="assets/favicon.png">
 <link rel="alternate icon" type="image/png" href="assets/icon-180.png">
 <link rel="manifest" href="manifest.json">
 <title>Bully</title>
@@ -25,15 +25,15 @@
 /* ================= Tokens (Designkonzept 2.1 bis 2.6) ================= */
 :root {
   --bg-0: #F3F2EF; --bg-1: #FFFFFF; --bg-2: #ECEBE7; --bg-3: #E0DFDA;
-  --tafel: #141416; --scrim: rgba(11, 12, 14, .40);
+  --tafel: #09111A; --scrim: rgba(11, 12, 14, .40);
   --text-1: #0B0C0E; --text-2: #5E6068; --text-3: #6B6E76; --text-on-accent: #FFFFFF;
   --line-1: #E6E7EB; --line-2: #D3D4DA; --line-ui: #8E9099;
-  --accent: #8C5D00; --accent-tint: #FBF1DC; --gold: #E1A72A;
+  --accent: #8A6420; --accent-tint: #FAF0DD; --gold: #D09E49;
   --sieg: #16A34A; --sieg-text: #0B7A3E; --sieg-tint: #E6F4EC;
   --remis: #878A93;
   --niederlage: #E5484D; --niederlage-text: #C8262C; --niederlage-tint: #FCEBEC;
   --neutral-heim: #3A3C42; --neutral-gast: #B4B6BD;
-  --seq-1: #FBF3E0; --seq-2: #F6E2B5; --seq-3: #EECB7E; --seq-4: #E1A72A; --seq-5: #A87512; --seq-6: #6E4A06;
+  --seq-1: #FBF3E0; --seq-2: #F6E2B5; --seq-3: #EECB7E; --seq-4: #D09E49; --seq-5: #A47A2C; --seq-6: #6E4A06;
   --seq-5-text: #FFFFFF; --seq-6-text: #FFFFFF;
   --glas: rgba(243, 242, 239, .88); --glas-bar: rgba(255, 255, 255, .88);
 
@@ -50,17 +50,17 @@
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) { :root {
-  --bg-0: #0B0B0C; --bg-1: #151517; --bg-2: #1D1D20; --bg-3: #27272B; --tafel: #18181B; --scrim: rgba(0,0,0,.60);
+  --bg-0: #09111A; --bg-1: #101A26; --bg-2: #172331; --bg-3: #202D3D; --tafel: #0D1621; --scrim: rgba(0,0,0,.60);
   --text-1: #F2F3F5; --text-2: #A2A5AD; --text-3: #6F727A; --text-on-accent: #0B0C0E;
-  --line-1: #24252A; --line-2: #33353B; --line-ui: #6F727A;
-  --accent: #E1A72A; --accent-tint: #2B2210;
+  --line-1: #1E2A39; --line-2: #2B3949; --line-ui: #6F7A88;
+  --accent: #D09E49; --accent-tint: #2A2416;
   --sieg: #32D16C; --sieg-text: #32D16C; --sieg-tint: #13281C; --remis: #6F727A;
   --niederlage: #FF6B6F; --niederlage-text: #FF6B6F; --niederlage-tint: #2E1719;
   --neutral-heim: #D9DBE0; --neutral-gast: #5A5D65;
-  --seq-1: #231C0E; --seq-2: #3A2D10; --seq-3: #5E4613; --seq-4: #8C6516; --seq-5: #C48E1E; --seq-6: #EBC062;
+  --seq-1: #231C0E; --seq-2: #3A2D10; --seq-3: #5E4613; --seq-4: #8C6A2E; --seq-5: #C2923F; --seq-6: #E6BE73;
   --seq-5-text: #0B0C0E; --seq-6-text: #0B0C0E;
   --shadow-float: 0 0 0 1px #2C2D33; --shadow-thumb: 0 0 0 .5px rgba(0,0,0,.4);
-  --glas: rgba(11, 11, 12, .88); --glas-bar: rgba(21, 21, 23, .88);
+  --glas: rgba(9, 17, 26, .88); --glas-bar: rgba(13, 22, 33, .9);
   color-scheme: dark;
 } }
 @media (min-width: 600px) { :root { --rand: 24px; --pad: 20px; --gap: 16px; } }
@@ -157,12 +157,12 @@ svg text { font-family: var(--font); font-variant-numeric: tabular-nums; }
 /* Hero-Tafel: in beiden Modi dunkel */
 .tafel {
   --text-1: #F2F3F5; --text-2: #A2A5AD; --text-3: #8B8E96; --sieg: #32D16C; --sieg-text: #32D16C; --remis: #6F727A;
-  --niederlage: #FF6B6F; --niederlage-text: #FF6B6F; --accent: #E1A72A; --text-on-accent: #141416; --line-1: #2A2B30;
+  --niederlage: #FF6B6F; --niederlage-text: #FF6B6F; --accent: #D09E49; --text-on-accent: #09111A; --line-1: #1E2A39;
   --neutral-heim: #D9DBE0; --neutral-gast: #5A5D65;
   color-scheme: dark; background: var(--tafel); color: var(--text-1); border-radius: var(--r-xl); padding: 20px;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.06); position: relative; overflow: hidden; min-width: 0;
 }
-.tafel::before { content: ""; position: absolute; inset: 0; background: radial-gradient(120% 80% at 100% 0%, rgba(225,167,42,.12), transparent 60%); pointer-events: none; }
+.tafel::before { content: ""; position: absolute; inset: 0; background: radial-gradient(120% 80% at 100% 0%, rgba(208,158,73,.14), transparent 60%); pointer-events: none; }
 .tafel > * { position: relative; }
 .tafel .zone-a { display: flex; justify-content: space-between; align-items: center; min-height: 20px; gap: 8px; }
 .tafel .zone-a .micro { color: var(--text-2); }
@@ -424,11 +424,18 @@ dialog.sheet::backdrop { background: var(--scrim); }
 .datenfuss { font-size: 12px; line-height: 16px; color: var(--text-3); margin-top: 24px; }
 
 /* ================= Broilers: Schriften und Akzente ================= */
+/* Titel wie in den Posts: schmale, fette Schrift (Anton) mit Rost-Textur als Maske */
+@font-face { font-family: "BullyAnton"; src: url("assets/fonts/anton.woff") format("woff"); font-display: swap; }
+.h1, .wortmarke { font-family: "BullyAnton", var(--font-display) !important; font-weight: 400 !important; letter-spacing: .015em !important;
+  -webkit-mask-image: url("assets/rost.png"); mask-image: url("assets/rost.png"); -webkit-mask-size: 220px; mask-size: 220px; }
+.h1 { font-size: 34px; line-height: 38px; }
+.tafel::after { content: ""; position: absolute; right: -60px; bottom: -70px; width: 300px; height: 300px; background: url("assets/hahn-ohne.webp") center / contain no-repeat; opacity: .16; pointer-events: none; }
+.vibe { background: radial-gradient(120% 140% at 0% 0%, #3A2C10 0%, #0D1621 55%, #09111A 100%) !important; }
 @font-face { font-family: "BullyOswald"; src: url("assets/fonts/oswald-500.woff") format("woff"); font-weight: 500 600; font-display: swap; }
 @font-face { font-family: "BullyOswald"; src: url("assets/fonts/oswald-700.woff") format("woff"); font-weight: 650 900; font-display: swap; }
 .h1 { text-transform: uppercase; letter-spacing: .01em; font-weight: 700; }
 .titel { letter-spacing: .01em; font-weight: 600; }
-.tafel { background: var(--tafel); background-image: linear-gradient(115deg, transparent 72%, rgba(225,167,42,.16) 72%, rgba(225,167,42,.16) 76%, transparent 76%); }
+.tafel { background: var(--tafel); }
 .tafel .hero { letter-spacing: -.01em; }
 .hinweis.demo { background: var(--accent-tint); color: var(--text-1); }
 .hinweis.demo .ico { color: var(--accent); }
@@ -492,14 +499,14 @@ details.ebild-karte > summary { cursor: default; }
 .ebild-knoepfe { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 8px; }
 /* Team-Song */
 .vibe { position: relative; display: grid; grid-template-columns: 96px minmax(0, 1fr) 64px; gap: 20px; align-items: center; padding: 20px; margin-bottom: var(--gap); border-radius: var(--r-l); background: radial-gradient(120% 140% at 0% 0%, #3A2C10 0%, #17181C 55%, #0E0F12 100%); color: #F2F3F5; overflow: hidden; }
-.vibe::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 2px rgba(242,183,5,.55); pointer-events: none; }
+.vibe::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 2px rgba(208,158,73,.55); pointer-events: none; }
 .vibe-cover { width: 96px; height: 96px; border-radius: 14px; object-fit: cover; box-shadow: 0 8px 24px rgba(0,0,0,.45); }
-.vibe .micro { color: #F5C21B; }
+.vibe .micro { color: #D09E49; }
 .vibe .titel { margin: 2px 0 2px; color: #fff; font-size: 22px; }
 .vibe .cap { color: #B9BCC4; }
 .vibe-zeit { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; margin-top: 12px; font-size: 12px; color: #B9BCC4; font-variant-numeric: tabular-nums; }
-.vibe-zeit input[type=range] { width: 100%; accent-color: #F5C21B; height: 20px; margin: 0; }
-.vibe-knopf { width: 64px; height: 64px; border-radius: 50%; border: 0; display: grid; place-items: center; background: #F5C21B; color: #1A1400; box-shadow: 0 6px 18px rgba(245,194,27,.35); transition: transform var(--t-fast); }
+.vibe-zeit input[type=range] { width: 100%; accent-color: #D09E49; height: 20px; margin: 0; }
+.vibe-knopf { width: 64px; height: 64px; border-radius: 50%; border: 0; display: grid; place-items: center; background: #D09E49; color: #09111A; box-shadow: 0 6px 18px rgba(208,158,73,.35); transition: transform var(--t-fast); }
 .vibe-knopf:active { transform: scale(.94); }
 .vibe-knopf .ico { width: 28px; height: 28px; }
 .vibe-knopf.an { animation: vibepuls 1.4s ease-in-out infinite; }
@@ -517,8 +524,8 @@ details.ebild-karte > summary { cursor: default; }
 @media (max-width: 599px) { .news { grid-template-columns: 48px minmax(0, 1fr); gap: 12px; } .news-ico { width: 48px; height: 48px; } .news .btn { grid-column: 1 / -1; width: 100%; } }
 /* Karussell „Get to know the team“ */
 /* Gelb abgesetzt, damit das Team auf Start heraussticht */
-.karussell-modul { --gelb: #F2B705; --gelb-tint: #FFF7D6; --gelb-text: #7A5A00; border: 2px solid var(--gelb); background: linear-gradient(180deg, var(--gelb-tint), var(--bg-1) 70%); }
-@media (prefers-color-scheme: dark) { .karussell-modul { --gelb: #F5C21B; --gelb-tint: #2A230B; --gelb-text: #F5C21B; } }
+.karussell-modul { --gelb: #D09E49; --gelb-tint: #FAF0DD; --gelb-text: #7A5719; border: 2px solid var(--gelb); background: linear-gradient(180deg, var(--gelb-tint), var(--bg-1) 70%); }
+@media (prefers-color-scheme: dark) { .karussell-modul { --gelb: #D09E49; --gelb-tint: #1C2330; --gelb-text: #D09E49; } }
 .karussell-modul .mkopf .micro { color: var(--gelb-text); }
 .karussell-modul .kk { border-color: color-mix(in srgb, var(--gelb) 45%, var(--line-1)); background: var(--bg-1); }
 .karussell-modul .kk-nr { background: var(--gelb); color: #1A1400; }
@@ -699,8 +706,8 @@ details.ebild-karte > summary { cursor: default; }
 <script src="spieler.js?v=1"></script>
 <script src="kennzahlen.js?v=1"></script>
 <script src="matchplan.js?v=2"></script>
-<script src="ergebnisbild.js?v=1"></script>
-<script src="app.js?v=3"></script>
+<script src="ergebnisbild.js?v=4"></script>
+<script src="app.js?v=5"></script>
 
 </body>
 </html>
